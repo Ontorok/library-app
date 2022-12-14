@@ -3,4 +3,4 @@ export type Message = {
   text: string;
 };
 
-export type Availibity = "Available" | "Not-Available";
+export type Availibity = "Available" | "Not Available";

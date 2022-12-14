@@ -1,7 +1,7 @@
-import { Availibity } from "../types/messageType";
+import { Availibity } from "../types";
 
 export interface IBook {
-  id: string;
+  id?: string;
   title: string;
   author: string;
   status: Availibity;

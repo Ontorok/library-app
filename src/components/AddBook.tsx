@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Message } from "../types/messageType";
+import React, { FormEvent, FormEventHandler, useState } from "react";
+import { Availibity, Message } from "../types";
 import { Form, Alert, InputGroup, Button, ButtonGroup } from "react-bootstrap";
+import { IBook } from "../models/book.model";
+import bookServices from "../service/book.services";
 
 const AddBook = () => {
   const [title, setTitle] = useState<string>("");
@@ -12,15 +14,42 @@ const AddBook = () => {
     text: "",
   });
 
+  const onSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setMessage({ error: false, text: "" });
+    if (title === "" || author === "") {
+      setMessage({ error: true, text: "All fields are mandatory!!" });
+    }
+    const newBook: IBook = {
+      title,
+      author,
+      status: status as Availibity,
+    };
+    try {
+      await bookServices.addBook(newBook);
+      setMessage({ error: false, text: "New Book addedd successfully!!!" });
+    } catch (err: any) {
+      setMessage({ error: false, text: err.message });
+    }
+    setTitle("");
+    setAuthor("");
+  };
+
   return (
     <div className="p-4 box">
       {message.text && (
-        <Alert variant={message?.error ? "danger" : "success"} dismissible>
+        <Alert
+          variant={message?.error ? "danger" : "success"}
+          dismissible
+          onClose={() => {
+            setMessage({ error: false, text: "" });
+          }}
+        >
           {message.text}
         </Alert>
       )}
 
-      <Form>
+      <Form onSubmit={onSubmit}>
         <Form.Group className="mb-3" controlId="formBookTitle">
           <InputGroup>
             <InputGroup.Text id="formBookTitle">B</InputGroup.Text>

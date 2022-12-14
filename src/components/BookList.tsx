@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Table, Button } from "react-bootstrap";
-import { IBook } from "../models/Book";
+import { IBook } from "../models/book.model";
 
 const BookList = () => {
   const [books, setBooks] = useState<IBook[]>([
