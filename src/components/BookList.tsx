@@ -1,20 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, Button } from "react-bootstrap";
 import { IBook } from "../models/book.model";
+import bookServices from "../service/book.services";
 
-const BookList = () => {
-  const [books, setBooks] = useState<IBook[]>([
-    {
-      id: "101",
-      title: "node js",
-      author: "Dev Gray",
-      status: "Available",
-    },
-  ]);
+const BookList = (props: Props) => {
+  const { getBookId } = props;
+  const [books, setBooks] = useState<IBook[]>([]);
+
+  const fetchBooks = async (): Promise<void> => {
+    const data = await bookServices.getAllBooks();
+    const books = data.docs.map((doc) => {
+      const bookData = doc.data();
+      const book: IBook = {
+        id: doc.id,
+        title: bookData.title,
+        author: bookData.author,
+        status: bookData.status,
+      };
+      return book;
+    });
+    setBooks(books);
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const onDelete = async (id: string): Promise<void> => {
+    await bookServices.deleteBook(id);
+    fetchBooks();
+  };
+
   return (
     <div>
       <div className="mb-2">
-        <Button variant="dark edit">Refresh List</Button>
+        <Button variant="dark edit" onClick={fetchBooks}>
+          Refresh List
+        </Button>
       </div>
 
       {/* <pre>{JSON.stringify(books, undefined, 2)}</pre>} */}
@@ -37,10 +59,18 @@ const BookList = () => {
                 <td>{doc.author}</td>
                 <td>{doc.status}</td>
                 <td>
-                  <Button variant="secondary" className="edit">
+                  <Button
+                    variant="secondary"
+                    className="edit"
+                    onClick={() => getBookId(doc.id as string)}
+                  >
                     Edit
                   </Button>
-                  <Button variant="danger" className="delete">
+                  <Button
+                    variant="danger"
+                    className="delete"
+                    onClick={() => onDelete(doc.id as string)}
+                  >
                     Delete
                   </Button>
                 </td>
@@ -51,6 +81,10 @@ const BookList = () => {
       </Table>
     </div>
   );
+};
+
+type Props = {
+  getBookId: (id: string) => void;
 };
 
 export default BookList;

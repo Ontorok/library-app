@@ -1,10 +1,11 @@
-import React, { FormEvent, FormEventHandler, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import { Availibity, Message } from "../types";
 import { Form, Alert, InputGroup, Button, ButtonGroup } from "react-bootstrap";
 import { IBook } from "../models/book.model";
 import bookServices from "../service/book.services";
 
-const AddBook = () => {
+const AddBook = (props: Props) => {
+  const { bookId, setBookId } = props;
   const [title, setTitle] = useState<string>("");
   const [author, setAuthor] = useState<string>("");
   const [status, setStatus] = useState<string>("Available");
@@ -26,14 +27,39 @@ const AddBook = () => {
       status: status as Availibity,
     };
     try {
-      await bookServices.addBook(newBook);
-      setMessage({ error: false, text: "New Book addedd successfully!!!" });
+      if (bookId !== undefined && bookId !== "") {
+        await bookServices.updateBook(bookId, newBook);
+        setBookId("");
+        setMessage({ error: false, text: "Updated successfully!" });
+      } else {
+        await bookServices.addBook(newBook);
+        setMessage({ error: false, text: "New Book added successfully!" });
+      }
     } catch (err: any) {
       setMessage({ error: false, text: err.message });
     }
     setTitle("");
     setAuthor("");
   };
+
+  const editHandler = async () => {
+    setMessage({ error: false, text: "" });
+    try {
+      const docSnap = await bookServices.getBook(bookId);
+      setTitle(docSnap.data()?.title);
+      setAuthor(docSnap.data()?.author);
+      setStatus(docSnap.data()?.status);
+    } catch (err: any) {
+      setMessage({ error: true, text: err.message });
+    }
+  };
+
+  useEffect(() => {
+    console.log("The id here is : ", bookId);
+    if (bookId !== undefined && bookId !== "") {
+      editHandler();
+    }
+  }, [bookId]);
 
   return (
     <div className="p-4 box">
@@ -103,6 +129,11 @@ const AddBook = () => {
       </Form>
     </div>
   );
+};
+
+type Props = {
+  bookId: string;
+  setBookId: React.Dispatch<React.SetStateAction<string>>;
 };
 
 export default AddBook;
